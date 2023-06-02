@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Images</title>
+</head>
+
+<body>
+  <h1>Images</h1>
+  <ul id="image-list"></ul>
+
+  <form id="image-upload-form">
+    <input type="file" id="image-input" accept="image/*">
+    <input type="text" id="category-input" placeholder="Category">
+    <button type="submit">Upload</button>
+  </form>
+
+  <script>
+    document.getElementById('image-upload-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const imageInput = document.getElementById('image-input');
+      const categoryInput = document.getElementById('category-input');
+
+      const file = imageInput.files[0];
+      const category = categoryInput.value;
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('category', category);
+
+      try {
+        const response = await fetch('http://localhost:3000/upload/image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          alert('Image uploaded successfully');
+          // You can perform any additional actions upon successful image upload
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error);
+        }
+      } catch (error) {
+        console.log(error);
+        alert('Failed to upload image');
+      }
+
+      // Reset the form inputs after submission
+      imageInput.value = '';
+      categoryInput.value = '';
+    });
+
+    function fetchImages() {
+      fetch('http://localhost:3000/images/all')
+        .then(response => response.json())
+        .then(data => {
+          const imageList = document.getElementById('image-list');
+          data.images.forEach(image => {
+            const listItem = document.createElement('li');
+            const img = document.createElement('img');
+            img.src = `http://localhost:3000/images/${image.url}`;
+            img.alt = image.category;
+            const category = document.createElement('p');
+            category.textContent = `Category: ${image.category}`;
+            listItem.appendChild(img);
+            listItem.appendChild(category);
+            imageList.appendChild(listItem);
+          });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+
+    fetchImages();
+  </script>
+</body>
+
+</html>
